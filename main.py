@@ -7,6 +7,11 @@ page_header = """
 <html>
 <head>
     <title>User Signup Form</title>
+    <style>
+        .error {
+            color: red;
+        }
+    </style>
 </head>
 <body>
     <h1>Signup</h1>
@@ -19,7 +24,6 @@ page_footer = """
 """
 
 # Regular expression helper functions
-Email: ""
 
 def valid_username(username):
     USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
@@ -34,7 +38,7 @@ def valid_email(email):
     return EM_RE.match(email)
 
 
-# handlers    
+# handlers
 class Index(webapp2.RequestHandler):
     """
     Handles requests coming in to '/' (the root of our site)
@@ -42,29 +46,51 @@ class Index(webapp2.RequestHandler):
     def get(self):
         signup_form =  """
         <form action="/welcome" method="post">
-            <label>
-                Username
+          <table>
+            <tr>
+              <td>
+                <label for="username">Username</label>
+              </td>
+              <td>
                 <input type="text" name="username"/>
-            </label>
-            <label>
-                Password
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <label for="password">Password</label>
+              </td>
+              <td>
                 <input type="password" name="password"/>
-            </label>
-            <label>
-                Verify Password
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <label for="verify">Verify Password</label>
+              </td>
+              <td>
                 <input type="password" name="verify"/>
-            </label>
-            <label>
-                E-mail
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <label for="email">E-mail</label>
+              </td>
+              <td>
                 <input type="email" name="email"/>
-            </label>
-            <input type="submit" value="Add It"/>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <input type="submit" value="Submit"/>
+              </td>
+            </tr>
+          </table>
         </form>
         """
         content = page_header + signup_form + page_footer
         self.response.write(content)
 
-
+"""
     def post(self):
         # look inside the request to figure out what the user typed
         username = self.request.get("username")
@@ -81,33 +107,17 @@ class Index(webapp2.RequestHandler):
         self.response.write(content)
 
 class WelcomeHandler(webapp2.RequestHandler):
-    """
-    Handles welcome message page '/welcome'
-    """
+
     def get(self):
         #If all tests successful, get username and send greeting
         username = self.request.get('username')
         welcome_message = "<h2>Welcome, " + username + "</h2>"
         self.response.write(welcome_message)
+"""
+
 
 app = webapp2.WSGIApplication([
-    ('/', Index,
-    '/welcome', WelcomeHandler
+    ('/', Index
+    #'/welcome', WelcomeHandler
     )
 ], debug=True)
-
-
-"""
-Regular Expressions
-A regular expression is a handy tool for matching text to a pattern. The regular expressions that we're using to validate you input are as follows:
-
-
-Example code for validating a username is as follows:
-
-  import re
-
-  def valid_username(username):
-    return USER_RE.match(username)
-More information on using regular expressions in Python can be found here
-
-NOTE: When you go off to make real applications that require form validation, remember that using regex to check an email address is not quite as simple as we make it seem here. See this Stack Overflow question for more on email validation."""
