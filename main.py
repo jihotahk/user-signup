@@ -23,6 +23,13 @@ page_footer = """
 </html>
 """
 
+# Heleper function to return list of form elements tuples (label, type)
+def getFormElements():
+    form_types = [("Username","text"),
+                ("Password" , "password"),
+                ("Verify" , "password"),
+                ("Email" , "email")]
+    return form_types
 # Regular expression helper functions
 
 def valid_username(username):
@@ -44,53 +51,36 @@ class Index(webapp2.RequestHandler):
     Handles requests coming in to '/' (the root of our site)
     """
     def get(self):
-        signup_form =  """
-        <form action="/welcome" method="post">
-          <table>
-            <tr>
-              <td>
-                <label for="username">Username</label>
-              </td>
-              <td>
-                <input type="text" name="username"/>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <label for="password">Password</label>
-              </td>
-              <td>
-                <input type="password" name="password"/>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <label for="verify">Verify Password</label>
-              </td>
-              <td>
-                <input type="password" name="verify"/>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <label for="email">E-mail</label>
-              </td>
-              <td>
-                <input type="email" name="email"/>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <input type="submit" value="Submit"/>
-              </td>
-            </tr>
-          </table>
-        </form>
-        """
+        #store error message if it exists
+        error = self.request.get("error")
+        if error:
+            error_span = "<span class='error'>" + error + "</span>"
+        else:
+            error_span = ""
+
+        # Build each form element using for loop
+        form_table_elements = ""
+
+        for form_label, form_type in getFormElements():
+            form_table_elements += """
+                    <tr>
+                      <td>
+                        <label for={0}>{0}</label>
+                      </td>
+                      <td>
+                        <input type="{1}" name="{0}"/>
+                      </td>
+                    </tr>
+                    """.format(form_label, form_type)
+
+        # Add form_table_elements to signup_form html
+        signup_form =  "<form action='/welcome' method='post'><table>"+ form_table_elements + "</table><input type='submit' value='Submit'/>"
+
+        # Put the page together and then write
         content = page_header + signup_form + page_footer
         self.response.write(content)
 
-"""
+
     def post(self):
         # look inside the request to figure out what the user typed
         username = self.request.get("username")
@@ -113,7 +103,7 @@ class WelcomeHandler(webapp2.RequestHandler):
         username = self.request.get('username')
         welcome_message = "<h2>Welcome, " + username + "</h2>"
         self.response.write(welcome_message)
-"""
+
 
 
 app = webapp2.WSGIApplication([
