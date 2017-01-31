@@ -13,9 +13,8 @@ page_header = """
         }
     </style>
 </head>
-<body>
-    <h1>Signup</h1>
-"""
+<body>"""
+
 
 # html boilerplate for the bottom of every page
 page_footer = """
@@ -51,12 +50,30 @@ class Index(webapp2.RequestHandler):
     Handles requests coming in to '/' (the root of our site)
     """
     def get(self):
+
+        # Header elements
+        index_header = "<h1>Signup</h1>"
+
         #store error message if it exists
-        error = self.request.get("error")
-        if error:
-            error_span = "<span class='error'>" + error + "</span>"
+        user_error = self.request.get("username_error")
+        if user_error:
+            user_error_span = "<span class='error'>" + user_error + "</span>"
         else:
-            error_span = ""
+            user_error_span = ""
+
+        password_error = self.request.get("password_error")
+        if password_error:
+            password_error_span = "<span class='error'>" + password_error + "</span>"
+        else:
+            user_error_span = ""
+
+        verify_error = self.request.get("verify_error")
+        email_error = self.request.get("email_error")
+
+        if user_error:
+            user_error_span = "<span class='error'>" + error + "</span>"
+        else:
+            user_error_span = ""
 
         # Build each form element using for loop
         form_table_elements = ""
@@ -71,43 +88,60 @@ class Index(webapp2.RequestHandler):
                         <input type="{1}" name="{0}"/>
                       </td>
                     </tr>
-                    """.format(form_label, form_type)
+                    """.format(form_label, form_type) + error_span
 
         # Add form_table_elements to signup_form html
         signup_form =  "<form action='/welcome' method='post'><table>"+ form_table_elements + "</table><input type='submit' value='Submit'/>"
 
         # Put the page together and then write
-        content = page_header + signup_form + page_footer
-        self.response.write(content)
-
-
-    def post(self):
-        # look inside the request to figure out what the user typed
-        username = self.request.get("username")
-        password = self.request.get("password")
-        verify = self.request.get("verify")
-        email = self.request.get("email")
-
-        #Input verification
-        valid_user = valid_username()
-        valid_pass = valid_password()
-        valid_verif = password == verify
-
-        content = "stuff" # make it look the same
+        content = page_header + index_header + signup_form + page_footer
         self.response.write(content)
 
 class WelcomeHandler(webapp2.RequestHandler):
+    """
+    Handles form post to /welcome;
+    Verify all user inputs
+    """
+    def post(self):
+        # look inside the request to figure out what the user typed
+        username = self.request.get("Username")
+        password = self.request.get("Password")
+        verify = self.request.get("verify")
+        email = self.request.get("email")
 
-    def get(self):
+        # If user does not supply a username
+        if username =="":
+            error_msg = "Please enter a username"
+            self.redirect("/?username_error=" + error_msg)
+
+        # If user supplies a bad username
+        elif valid_username(username):
+            error_msg = "Please enter a valid username"
+            self.redirect("/?username_error=" + error_msg)
+
+        # If password is not valid
+        elif valid_password(password):
+            error_msg = "That password is not valid"
+            self.redirect("/?password_error=" + error_msg)
+
+        # If user password does not match
+        elif password != verify:
+            error_msg = "Passwords do not match"
+            self.redirect("/?verify_error=" + error_msg)
+
+        # If email is not valid
+        elif valid_email(email):
+            error_msg = "Please enter a valid email address"
+            self.redirect("/?email_error=" + error_msg)
+
         #If all tests successful, get username and send greeting
-        username = self.request.get('username')
-        welcome_message = "<h2>Welcome, " + username + "</h2>"
-        self.response.write(welcome_message)
-
+        else:
+            welcome_message = "<h2>Welcome, " + username + "</h2>"
+            content = page_header + welcome_message + page_footer
+            self.response.write(content)
 
 
 app = webapp2.WSGIApplication([
-    ('/', Index
-    #'/welcome', WelcomeHandler
-    )
+    ('/', Index),
+    ('/welcome', WelcomeHandler)
 ], debug=True)
