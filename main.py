@@ -39,10 +39,18 @@ def valid_password(password):
     PW_RE = re.compile(r"^.{3,20}$")
     return PW_RE.match(password)
 
+def valid_verify(password,verify):
+    return pasword==verify
+
 def valid_email(email):
     EM_RE = re.compile(r"^[\S]+@[\S]+.[\S]+$")
     return EM_RE.match(email)
 
+# If there is an error, assign error to correct error content
+def error_check(form_list):
+    """Takes a list of form elements passed through by POST command,
+    returns boolean Y if it passes all tests"""
+    return True
 
 # handlers
 class Index(webapp2.RequestHandler):
@@ -53,27 +61,6 @@ class Index(webapp2.RequestHandler):
 
         # Header elements
         index_header = "<h1>Signup</h1>"
-
-        #store error message if it exists
-        user_error = self.request.get("username_error")
-        if user_error:
-            user_error_span = "<span class='error'>" + user_error + "</span>"
-        else:
-            user_error_span = ""
-
-        password_error = self.request.get("password_error")
-        if password_error:
-            password_error_span = "<span class='error'>" + password_error + "</span>"
-        else:
-            user_error_span = ""
-
-        verify_error = self.request.get("verify_error")
-        email_error = self.request.get("email_error")
-
-        if user_error:
-            user_error_span = "<span class='error'>" + error + "</span>"
-        else:
-            user_error_span = ""
 
         # Build each form element using for loop
         form_table_elements = ""
