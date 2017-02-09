@@ -16,6 +16,8 @@ page_header = """
 </head>
 <body>"""
 
+index_h1 = "<h1>Signup</h1>"
+
 # html boilerplate for the bottom of every page
 page_footer = """
 </body>
@@ -23,15 +25,15 @@ page_footer = """
 """
 
 signup_form ="""
-<form action='/welcome' method='post'>
+<form action='/'' method ='post'>
   <table>
     <tr>
       <td>
         <label for=username> Username: </label>
       </td>
       <td>
-        <input type="text" name="username" value={username} />
-        <p class="error">{username_error}</p>
+        <input type="text" name="username" value="%(username)s" />
+        <p class="error">%(username_error)s</p>
       </td>
     </tr>
     <tr>
@@ -40,7 +42,7 @@ signup_form ="""
       </td>
       <td>
         <input type="password" name="password" value=""/>
-        <p class="error">{password_error}</p>
+        <p class="error">%(password_error)s</p>
       </td>
     </tr>
     <tr>
@@ -49,30 +51,22 @@ signup_form ="""
       </td>
       <td>
         <input type="password" name="verify" value="" />
-        <p class="error">{verify_error}</p>
+        <p class="error">%(verify_error)s</p>
       </td>
     </tr>
     <tr>
       <td>
-        <label for=email> Email: </label>
+        <label for="email"> Email (Optional): </label>
       </td>
       <td>
-        <input type="email" name="email" value={email} />
-        <p class="error">{email_error}</p>
+        <input type="text" name="email" value="%(email)s" />
+        <p class="error">%(email_error)s</p>
       </td>
     </tr>
   </table>
-  <input type='submit' value='Submit'/>"
+  <input type='submit' value='Submit'/>
 </form>
 """
-
-# Heleper function to return list of form elements tuples (label, type)
-def getFormElements():
-    form_types = [("Username","text"),
-                ("Password" , "password"),
-                ("Verify" , "password"),
-                ("Email" , "email")]
-    return form_types
 
 # Regular expression helper functions
 
@@ -89,37 +83,15 @@ def valid_verify(password,verify):
 
 def valid_email(email):
     EM_RE = re.compile(r"^[\S]+@[\S]+.[\S]+$")
-    return email or EM_RE.match(email)
+    return not email or EM_RE.match(email)
 
-# If there is an error, assign error to correct error content
-def error_check(form_list):
-    """Takes a list of form elements passed through by POST command,
-    returns boolean Y if it passes all tests"""
-    # If user does not supply a username
-    if username =="":
-        error_msg = "Please enter a username"
-        self.redirect("/?username_error=" + error_msg)
-
-    # If user supplies a bad username
-    elif valid_username(username):
-        error_msg = "Please enter a valid username"
-        self.redirect("/?username_error=" + error_msg)
-
-    # If password is not valid
-    elif valid_password(password):
-        error_msg = "That password is not valid"
-        self.redirect("/?password_error=" + error_msg)
-
-    # If user password does not match
-    elif password != verify:
-        error_msg = "Passwords do not match"
-        self.redirect("/?verify_error=" + error_msg)
-
-    # If email is not valid
-    elif valid_email(email):
-        error_msg = "Please enter a valid email address"
-        self.redirect("/?email_error=" + error_msg)
-    return None
+#this is the empty dictionary of parameters
+empty = {'username': "",
+        'username_error':"",
+        'password_error':"",
+        'verify_error':"",
+        'email': "",
+        'email_error': ""}
 
 # handler classes
 class Index(webapp2.RequestHandler):
@@ -127,28 +99,67 @@ class Index(webapp2.RequestHandler):
     Handles requests coming in to '/' (the root of signup site)
     """
     def get(self):
-        index_header = "<h1>Signup</h1>"
-        content = page_header + index_header + signup_form + page_footer
+        #need to set all the string subs to empty string
+        content = page_header + index_h1+ signup_form % empty + page_footer
         self.response.write(content)
 
     def post(self):
+        #initialize parameter dictionary
+        keep = empty
+
         # look inside the request to figure out what the user typed
         username = self.request.get("username")
         password = self.request.get("password")
         verify = self.request.get("verify")
         email = self.request.get("email")
 
+        #store username/email, and error messages in a dictionary
+        if username:
+            keep["username"] = username
+        if email:
+            keep["email"] = email
+
+        form_error = False
+
+        # If username not valid
+        if not valid_username(username):
+            keep['username_error'] = "Please enter a valid username"
+            form_error = True
+
+        # If password is not valid
+        if not valid_password(password):
+            keep['password_error'] = "That password is not valid"
+            form_error = True
+
+        # If user password does not match
+        if password != verify:
+            keep['verify_error'] = "Passwords do not match"
+            form_error = True
+
+        # If email is not valid
+        if not valid_email(email):
+            keep['email_error'] = "Please enter a valid email address"
+            form_error = True
+
+        #If there is error:
+        if form_error:
+            content = page_header + index_h1+ signup_form % keep + page_footer
+            self.response.write(content)
+        else:
+            self.redirect('/welcome?username=' + username)
+
 class WelcomeHandler(webapp2.RequestHandler):
     """
     Handles form post to /welcome;
-    Verify all user inputs
     """
     def get(self):
         username = self.request.get("username")
-        welcome_message = "<h2>Welcome, " + username + "</h2>"
-        content = page_header + welcome_message + page_footer
-        self.response.write(content)
-
+        if valid_username:
+            welcome_message = "<h2>Welcome, " + username + "!</h2>"
+            content = page_header + welcome_message + page_footer
+            self.response.write(content)
+        else:
+            self.redirect('/')
 
 app = webapp2.WSGIApplication([
     ('/', Index),
