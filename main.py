@@ -85,27 +85,27 @@ def valid_email(email):
     EM_RE = re.compile(r"^[\S]+@[\S]+.[\S]+$")
     return not email or EM_RE.match(email)
 
-#this is the empty dictionary of parameters
-empty = {'username': "",
-        'username_error':"",
-        'password_error':"",
-        'verify_error':"",
-        'email': "",
-        'email_error': ""}
-
 # handler classes
 class Index(webapp2.RequestHandler):
     """
     Handles requests coming in to '/' (the root of signup site)
     """
+    def write_form(self, username="", email="", username_error="", password_error="", verify_error="", email_error=""):
+        content = page_header + index_h1+ signup_form + page_footer
+        self.response.out.write(content % { "username": username,
+                                            "email": email,
+                                            "username_error": username_error,
+                                            "password_error": password_error,
+                                            "verify_error": verify_error,
+                                            "email_error": email_error})
+
     def get(self):
         #need to set all the string subs to empty string
-        content = page_header + index_h1+ signup_form % empty + page_footer
-        self.response.write(content)
+        self.write_form()
 
     def post(self):
         #initialize parameter dictionary
-        keep = empty
+        params = {}
 
         # look inside the request to figure out what the user typed
         username = self.request.get("username")
@@ -115,36 +115,36 @@ class Index(webapp2.RequestHandler):
 
         #store username/email, and error messages in a dictionary
         if username:
-            keep["username"] = username
+            params["username"] = username
         if email:
-            keep["email"] = email
+            params["email"] = email
 
+        #Start checking for errors, set form_error to true and set error message
         form_error = False
 
         # If username not valid
         if not valid_username(username):
-            keep['username_error'] = "Please enter a valid username"
+            params['username_error'] = "Please enter a valid username"
             form_error = True
 
         # If password is not valid
         if not valid_password(password):
-            keep['password_error'] = "That password is not valid"
+            params['password_error'] = "That password is not valid"
             form_error = True
 
         # If user password does not match
         if password != verify:
-            keep['verify_error'] = "Passwords do not match"
+            params['verify_error'] = "Passwords do not match"
             form_error = True
 
         # If email is not valid
         if not valid_email(email):
-            keep['email_error'] = "Please enter a valid email address"
+            params['email_error'] = "Please enter a valid email address"
             form_error = True
 
-        #If there is error:
+        #If there is error, rerender with error messages:
         if form_error:
-            content = page_header + index_h1+ signup_form % keep + page_footer
-            self.response.write(content)
+            self.write_form(**params)
         else:
             self.redirect('/welcome?username=' + username)
 
